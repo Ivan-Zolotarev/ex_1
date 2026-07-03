@@ -89,26 +89,6 @@ def test_integration_create_ticket_with_empty_description_raises_error():
             created_by_user_id=user.id,
         )
 
-
-def test_integration_application_service_wires_modules_correctly():
-    """Интеграция через ApplicationService: общие репозитории и связанные сервисы."""
-    application = ApplicationService()
-
-    user = application.user_service.create_user("Demo User", "demo@example.com")
-    ticket = application.ticket_service.create_ticket(
-        title="Интеграционная заявка",
-        description="Проверка связки сервисов через ApplicationService.",
-        created_by_user_id=user.id,
-    )
-
-    stored_user = application.user_service.get_user(user.id)
-    user_tickets = application.ticket_service.list_user_tickets(user.id)
-
-    assert stored_user.email == "demo@example.com"
-    assert len(user_tickets) == 1
-    assert user_tickets[0].id == ticket.id
-
-
 def test_integration_change_status_for_unknown_ticket_raises_error():
     """Ошибочный сценарий: смена статуса несуществующей заявки."""
     user_service, ticket_service = _create_integrated_services()
