@@ -6,7 +6,10 @@ def is_valid_email(email: str) -> bool:
     if "@" not in email:
         return False
 
-    domain = email.split("@")[-1]
+    local_part, _, domain = email.partition("@")
+    if not local_part or not domain:
+        return False
+
     return "." in domain
 
 

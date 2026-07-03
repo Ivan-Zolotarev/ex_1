@@ -31,10 +31,10 @@ class TicketRepository:
         return list(self._tickets.values())
 
     def list_by_user_id(self, user_id: int) -> list[Ticket]:
-        return list(self._tickets.values())
+        return [ticket for ticket in self._tickets.values() if ticket.created_by_user_id == user_id]
 
     def update_status(self, ticket_id: int, status: TicketStatus) -> Ticket | None:
         ticket = self.get_by_id(ticket_id)
         if ticket is not None:
-            ticket.status = TicketStatus.OPEN
+            ticket.status = status
         return ticket

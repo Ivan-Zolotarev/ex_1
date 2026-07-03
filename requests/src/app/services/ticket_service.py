@@ -2,6 +2,7 @@ from app.exceptions.app_exceptions import NotFoundError, ValidationError
 from app.models.ticket import Ticket
 from app.models.ticket_status import TicketStatus
 from app.repositories.ticket_repository import TicketRepository
+from app.services.user_service import UserService
 from app.utils.validators import is_not_empty
 
 
@@ -11,8 +12,9 @@ class TicketService:
     Отвечает за бизнес-логику модуля «Заявки».
     """
 
-    def __init__(self, ticket_repository: TicketRepository) -> None:
+    def __init__(self, ticket_repository: TicketRepository, user_service: UserService) -> None:
         self._ticket_repository = ticket_repository
+        self._user_service = user_service
 
     def create_ticket(self, title: str, description: str, created_by_user_id: int) -> Ticket:
         title = title.strip()
@@ -23,6 +25,8 @@ class TicketService:
 
         if not is_not_empty(description):
             raise ValidationError("Описание заявки не может быть пустым.")
+
+        self._user_service.get_user(created_by_user_id)
 
         return self._ticket_repository.add(
             title=title,

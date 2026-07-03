@@ -16,4 +16,4 @@ class ApplicationService:
 
         self.user_service = UserService(self.user_repository)
 
-        self.ticket_service = TicketService(self.ticket_repository)
+        self.ticket_service = TicketService(self.ticket_repository, self.user_service)

@@ -38,7 +38,7 @@ class UserService:
         return self._user_repository.get_all()
 
     def list_active_users(self) -> list[User]:
-        return self._user_repository.get_all()
+        return [user for user in self._user_repository.get_all() if user.is_active]
 
     def deactivate_user(self, user_id: int) -> User:
         user = self._user_repository.deactivate(user_id)
