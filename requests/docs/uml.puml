@@ -1,0 +1,176 @@
+@startuml
+title Информационная система учета заявок пользователей
+
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+
+' ── Модели данных ──────────────────────────────────────────
+package "models" {
+  class User {
+    +id: int
+    +full_name: str
+    +email: str
+    +is_active: bool
+  }
+
+  class Ticket {
+    +id: int
+    +title: str
+    +description: str
+    +created_by_user_id: int
+    +status: TicketStatus
+  }
+
+  enum TicketStatus {
+    OPEN
+    IN_PROGRESS
+    CLOSED
+  }
+}
+
+' ── Хранение данных ───────────────────────────────────────
+package "repositories" {
+  class UserRepository {
+    -_users: dict[int, User]
+    -_next_id: int
+    --
+    +add(full_name, email): User
+    +get_by_id(user_id): User | None
+    +get_all(): list[User]
+    +find_by_email(email): User | None
+    +deactivate(user_id): User | None
+  }
+
+  class TicketRepository {
+    -_tickets: dict[int, Ticket]
+    -_next_id: int
+    --
+    +add(title, description, created_by_user_id): Ticket
+    +get_by_id(ticket_id): Ticket | None
+    +get_all(): list[Ticket]
+    +list_by_user_id(user_id): list[Ticket]
+    +update_status(ticket_id, status): Ticket | None
+  }
+}
+
+' ── Бизнес-логика ─────────────────────────────────────────
+package "services" {
+  class UserService {
+    -_user_repository: UserRepository
+    --
+    +create_user(full_name, email): User
+    +get_user(user_id): User
+    +list_users(): list[User]
+    +list_active_users(): list[User]
+    +deactivate_user(user_id): User
+  }
+
+  class TicketService {
+    -_ticket_repository: TicketRepository
+    --
+    +create_ticket(title, description, created_by_user_id): Ticket
+    +get_ticket(ticket_id): Ticket
+    +list_tickets(): list[Ticket]
+    +list_user_tickets(user_id): list[Ticket]
+    +change_status(ticket_id, status): Ticket
+  }
+
+  class ApplicationService {
+    +user_repository: UserRepository
+    +ticket_repository: TicketRepository
+    +user_service: UserService
+    +ticket_service: TicketService
+    --
+    +__init__()
+  }
+}
+
+' ── Пользовательский интерфейс ────────────────────────────
+package "interface" {
+  class ConsoleInterface {
+    -_user_service: UserService
+    -_ticket_service: TicketService
+    --
+    +run_demo(): None
+  }
+}
+
+' ── Исключения ────────────────────────────────────────────
+package "exceptions" {
+  class AppError {
+  }
+  class ValidationError {
+  }
+  class NotFoundError {
+  }
+  class DuplicateError {
+  }
+
+  AppError <|-- ValidationError
+  AppError <|-- NotFoundError
+  AppError <|-- DuplicateError
+}
+
+' ── Утилиты ───────────────────────────────────────────────
+package "utils" <<utility>> {
+  class validators <<module>> {
+    +is_valid_email(email): bool
+    +is_not_empty(value): bool
+  }
+}
+
+' ── Точка входа ───────────────────────────────────────────
+package "app" {
+  class main <<module>> {
+    +main(): None
+  }
+}
+
+' ── Связи между слоями ────────────────────────────────────
+main --> ApplicationService : создаёт
+main --> ConsoleInterface : создаёт
+
+ApplicationService *--> UserRepository : создаёт
+ApplicationService *--> TicketRepository : создаёт
+ApplicationService *--> UserService : создаёт
+ApplicationService *--> TicketService : создаёт
+
+ConsoleInterface --> UserService : использует
+ConsoleInterface --> TicketService : использует
+ConsoleInterface ..> AppError : обрабатывает
+
+UserService --> UserRepository : использует
+TicketService --> TicketRepository : использует
+
+UserService ..> validators : is_valid_email
+TicketService ..> validators : is_not_empty
+
+UserService ..> ValidationError : бросает
+UserService ..> NotFoundError : бросает
+UserService ..> DuplicateError : бросает
+TicketService ..> ValidationError : бросает
+TicketService ..> NotFoundError : бросает
+
+UserRepository ..> User : хранит
+TicketRepository ..> Ticket : хранит
+
+Ticket --> TicketStatus : status
+Ticket ..> User : created_by_user_id
+
+' ── Планируемая интеграция модулей ────────────────────────
+TicketService ..> UserService : <<планируется>>\nпроверка User
+
+note right of ApplicationService
+  Composition root:
+  собирает репозитории
+  и сервисы в одном месте.
+end note
+
+note bottom of Ticket
+  Логическая связь с User
+  через поле created_by_user_id.
+  Ссылочная целостность
+  обеспечивается в TicketService.
+end note
+
+@enduml
