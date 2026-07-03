@@ -1,7 +1,7 @@
 from app.exceptions.app_exceptions import DuplicateError, NotFoundError, ValidationError
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
-from app.utils.validators import is_valid_email
+from app.utils.validators import is_not_empty, is_valid_email
 
 
 class UserService:
@@ -17,7 +17,7 @@ class UserService:
         full_name = full_name.strip()
         email = email.strip().lower()
 
-        if not full_name:
+        if not is_not_empty(full_name):
             raise ValidationError("ФИО пользователя не может быть пустым.")
 
         if not is_valid_email(email):

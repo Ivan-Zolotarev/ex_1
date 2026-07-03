@@ -67,6 +67,7 @@ package "services" {
 
   class TicketService {
     -_ticket_repository: TicketRepository
+    -_user_service: UserService
     --
     +create_ticket(title, description, created_by_user_id): Ticket
     +get_ticket(ticket_id): Ticket
@@ -141,6 +142,7 @@ ConsoleInterface ..> AppError : обрабатывает
 
 UserService --> UserRepository : использует
 TicketService --> TicketRepository : использует
+TicketService --> UserService : проверка User
 
 UserService ..> validators : is_valid_email
 TicketService ..> validators : is_not_empty
@@ -156,9 +158,6 @@ TicketRepository ..> Ticket : хранит
 
 Ticket --> TicketStatus : status
 Ticket ..> User : created_by_user_id
-
-' ── Планируемая интеграция модулей ────────────────────────
-TicketService ..> UserService : <<планируется>>\nпроверка User
 
 note right of ApplicationService
   Composition root:
